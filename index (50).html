@@ -1,0 +1,554 @@
+<title>Гранель — Кабинет брокера</title>
+<meta name="description" content="Демо Telegram Mini App личного кабинета брокера Гранель">
+<style>
+  :root{
+    --red:#E30613; --red-press:#c40510;
+    --ink:#1B1B1F; --ink-soft:#3A3A40;
+    --muted:#8A8A93; --muted-2:#A9A9B2;
+    --line:#ECECEF; --field:#F4F4F6; --field-line:#E4E4E9;
+    --bg:#FFFFFF; --card:#FFFFFF; --shell:#111114;
+    --green:#41B463; --green-bg:#EAF7EE;
+    --chip:#F1F1F4;
+    --radius:16px; --radius-lg:22px;
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--shell);color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:430px;margin:0 auto;min-height:100%;}
+
+  /* демо-баннер */
+  .demobar{background:#1b1b1f;color:#e9e9ee;font-size:12px;line-height:1.35;
+    padding:9px 16px;display:flex;gap:8px;align-items:center;justify-content:center;text-align:center;}
+  .demobar b{color:#fff;font-weight:600}
+
+  /* телефон-контейнер */
+  .phone{background:var(--bg);min-height:calc(100% - 40px);position:relative;overflow:hidden;}
+
+  /* верхняя мини-строка телеграма (имитация) */
+  .tgtop{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);}
+  .tgtop .dot{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#37BBFE,#007DBB);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;}
+  .tgtop .t{font-size:13px;color:var(--muted);flex:1}
+  .tgtop .close{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);color:var(--muted);
+    display:flex;align-items:center;justify-content:center;font-size:15px;background:none;cursor:pointer;}
+
+  header.brand{display:flex;align-items:center;gap:8px;padding:16px 20px 14px;justify-content:space-between;}
+  .logo{display:flex;align-items:baseline;gap:6px;}
+  .logo .g{font-weight:800;font-size:20px;letter-spacing:.5px;color:var(--red);
+    font-family:"Arial Narrow",Arial,sans-serif;}
+  .logo .beta{font-size:12px;color:var(--muted);font-weight:600}
+  .burger{width:30px;height:30px;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;
+    justify-content:center;gap:5px;padding:0}
+  .burger span{height:2px;background:var(--ink);border-radius:2px;display:block}
+  .rule{height:1px;background:var(--line);margin:0}
+
+  .screen{padding:8px 20px 40px;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  h1{font-size:34px;line-height:1.05;font-weight:800;margin:14px 0 10px;letter-spacing:-.5px;text-wrap:balance}
+  h1.sm{font-size:27px}
+  .lead{color:var(--muted);font-size:16px;line-height:1.4;margin:0 0 22px}
+
+  label.fl{display:block;font-size:15px;font-weight:600;margin:0 0 8px}
+  label.fl .req{color:var(--red)}
+  .seg{display:flex;background:var(--field);border:1px solid var(--field-line);border-radius:var(--radius-lg);
+    padding:5px;margin-bottom:18px}
+  .seg button{flex:1;border:none;background:none;padding:13px;border-radius:18px;font-size:15px;font-weight:600;
+    color:var(--ink-soft);cursor:pointer}
+  .seg button.on{background:var(--ink);color:#fff}
+
+  .field{width:100%;border:1px solid var(--field-line);background:var(--bg);border-radius:var(--radius-lg);
+    padding:18px 20px;font-size:16px;color:var(--ink);outline:none;margin-bottom:6px}
+  .field::placeholder{color:var(--muted-2)}
+  .field:focus{border-color:var(--red)}
+  .field.err{border-color:var(--red)}
+  .fielderr{color:var(--red);font-size:14px;margin:2px 0 16px}
+
+  .consent{display:flex;gap:12px;align-items:flex-start;margin:16px 0 20px;font-size:13.5px;color:var(--ink-soft);line-height:1.4}
+  .consent input{margin-top:2px;width:22px;height:22px;accent-color:var(--red);flex:none}
+  .consent a{color:var(--red);text-decoration:none}
+
+  .btn{width:100%;border:none;border-radius:var(--radius-lg);padding:19px;font-size:16px;font-weight:700;cursor:pointer;
+    background:var(--red);color:#fff;transition:background .15s}
+  .btn:active{background:var(--red-press)}
+  .btn[disabled]{background:#F0B9BE;cursor:default}
+  .btn.ghost{background:none;border:1px solid var(--field-line);color:var(--ink)}
+  .btn.dark{background:var(--ink)}
+  .btn.sm{padding:15px;font-size:15px}
+  .btnrow{display:flex;gap:12px;margin-top:12px}
+  .btnrow .btn{flex:1}
+
+  /* СМС код */
+  .codewrap{display:flex;gap:10px;margin:6px 0 18px}
+  .codewrap input{flex:1;text-align:center;font-size:24px;font-weight:700;padding:16px 0;border:1px solid var(--field-line);
+    background:var(--bg);border-radius:16px;outline:none;color:var(--ink);width:0}
+  .codewrap input:focus{border-color:var(--red)}
+  .resend{width:100%;background:var(--field);color:var(--muted);border:none;border-radius:var(--radius-lg);padding:17px;font-size:15px;font-weight:600}
+  .changeno{color:var(--ink);font-weight:700;background:none;border:none;cursor:pointer;font-size:15px;padding:0}
+
+  /* главная */
+  .hi{font-size:28px;font-weight:800;line-height:1.12;margin:12px 0 20px;letter-spacing:-.4px}
+  .tile{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 18px;margin-bottom:14px;background:var(--card);cursor:pointer;text-align:left;width:100%}
+  .tile .ic{width:52px;height:52px;border-radius:50%;background:#F6F6F8;display:flex;align-items:center;justify-content:center;flex:none}
+  .tile .ic.red svg{color:var(--red)}
+  .tile .tx{flex:1}
+  .tile .tt{font-size:16px;font-weight:700;line-height:1.2}
+  .tile .ss{font-size:14px;color:var(--muted);margin-top:2px}
+  .tile .go{width:40px;height:40px;border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;color:var(--ink)}
+
+  .panel{border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin:18px 0}
+  .panel h3{margin:0 0 4px;font-size:22px;font-weight:800}
+  .panel .cnt{color:var(--muted);font-weight:600;font-size:15px}
+  .statrow{display:flex;justify-content:space-between;align-items:center;background:var(--field);border-radius:14px;padding:16px 18px;margin-top:12px}
+  .statrow .l{color:var(--ink-soft);font-size:15px}
+  .statrow .v{font-weight:800;font-size:18px}
+  .welcome img{width:100%;border-radius:14px;display:block;margin:14px 0}
+  .welcome .wt{font-size:22px;font-weight:800;line-height:1.15}
+  .welcome .wt .r{color:var(--red)}
+  .welcome p{color:var(--muted);font-size:15px;line-height:1.4;margin:8px 0 0}
+  .brokerrow{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+  .brokerrow .chev{color:var(--red);font-size:20px}
+  .bcard{border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-top:14px;display:flex;gap:14px}
+  .bcard .av{width:56px;height:56px;border-radius:50%;background:#E4E4EA;color:#6a6a72;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+  .bcard .nm{font-size:20px;font-weight:800;line-height:1.15}
+  .bcard .sub{color:var(--muted);font-size:15px;margin:4px 0 12px}
+  .bcard .li{display:flex;gap:8px;align-items:center;color:var(--ink-soft);font-size:14px;margin-top:6px}
+  .bcard .li svg{color:var(--muted);flex:none}
+
+  /* результат уникальности */
+  .center{text-align:center;padding-top:26px}
+  .result-ic{width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 22px}
+  .result-ic.ok{background:var(--green)}
+  .result-ic.no{background:var(--red)}
+  .result-ic svg{color:#fff}
+  .center h2{font-size:26px;font-weight:800;line-height:1.15;margin:0 0 6px;text-wrap:balance}
+  .center p.sub{color:var(--muted);font-size:16px;margin:0}
+
+  /* списки клиентов/интересов */
+  .search{display:flex;gap:0;border:1px solid var(--field-line);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:14px;background:var(--bg)}
+  .search svg{margin:0 8px 0 16px;color:var(--muted);align-self:center;flex:none}
+  .search input{flex:1;border:none;outline:none;padding:16px 4px;font-size:15px;background:none}
+  .search .find{background:var(--field);color:var(--muted-2);border:none;padding:0 22px;font-weight:600;font-size:15px}
+  .selectish{width:100%;border:1px solid var(--field-line);background:var(--field);border-radius:var(--radius-lg);
+    padding:17px 20px;font-size:15px;font-weight:600;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:var(--ink)}
+  .selectish.muted{color:var(--muted);font-weight:500}
+  .selectish .cx{color:var(--muted)}
+  .intcard{border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+  .intcard .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+  .intcard .jk{font-size:16px;font-weight:700;line-height:1.2;flex:1}
+  .badge{background:var(--green-bg);color:#2f8f4e;font-size:13px;font-weight:600;padding:6px 12px;border-radius:20px;white-space:nowrap}
+  .intcard .meta{color:var(--ink-soft);font-size:14px;line-height:1.5}
+  .intcard .arrow{width:38px;height:38px;border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:10px;margin-left:auto}
+  .empty{text-align:center;color:var(--muted);padding:40px 0}
+  .empty svg{color:#C9C9D0;margin-bottom:14px}
+  .empty .t{font-size:20px;color:var(--ink);font-weight:600;margin-bottom:4px}
+
+  /* боковое меню */
+  .drawer{position:absolute;inset:0;background:var(--bg);z-index:20;display:flex;flex-direction:column;animation:fade .2s ease}
+  .drawer .dh{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+  .drawer .dh .av{width:44px;height:44px;border-radius:50%;background:#E4E4EA;color:#6a6a72;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+  .drawer .dh .nm{font-weight:700;font-size:14px;line-height:1.2}
+  .drawer .dh .sub{color:var(--muted);font-size:12px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:230px}
+  .drawer .dh .x{margin-left:auto;background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer}
+  .drawer nav{padding:8px 20px;overflow:auto;flex:1}
+  .drawer nav a{display:flex;justify-content:space-between;align-items:center;padding:15px 0;font-size:19px;font-weight:600;color:var(--ink);text-decoration:none;cursor:pointer}
+  .drawer nav a.active{color:var(--red)}
+  .drawer nav a .n{background:var(--red);color:#fff;font-size:12px;font-weight:700;min-width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;padding:0 6px}
+  .drawer .foot{border-top:1px solid var(--line);padding:16px 20px}
+  .drawer .foot .a{display:flex;align-items:center;gap:8px;padding:12px 0;color:var(--ink);font-size:15px}
+
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--line)}
+  .modal-head .mt{font-size:15px;font-weight:600}
+  .modal-head .x{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);color:var(--muted);background:none;font-size:16px;cursor:pointer}
+  .hint{font-size:13px;color:var(--muted-2);text-align:center;margin-top:14px}
+  .demo-pill{display:inline-block;background:#FFF3D6;color:#8a6d1a;font-size:12px;font-weight:600;padding:4px 10px;border-radius:12px;margin-bottom:12px}
+</style>
+
+<div class="wrap">
+  <div class="phone" id="phone">
+
+    <!-- имитация верхней строки телеграма -->
+    <div class="tgtop">
+      <div class="dot">T</div>
+      <div class="t">TestGranelle · Mini App</div>
+      <button class="close" title="закрыть (демо)" onclick="reset()">✕</button>
+    </div>
+
+    <!-- ЭКРАН: вход -->
+    <section id="s-login" class="screen">
+      <header class="brand" style="padding-left:0;padding-right:0">
+        <div class="logo"><span class="g">ГРАНЕЛЬ</span><span class="beta">Beta</span></div>
+      </header>
+      <div class="rule"></div>
+      <h1>Личный кабинет</h1>
+      <p class="lead">Войдите или зарегистрируйтесь в личном кабинете, чтобы получить доступ ко всем возможностям</p>
+
+      <label class="fl">Выберите тип аккаунта <span class="req">*</span></label>
+      <div class="seg">
+        <button class="on" id="seg-a" onclick="seg('a')">Агентство</button>
+        <button id="seg-b" onclick="seg('b')">Сотрудник агентства</button>
+      </div>
+
+      <label class="fl">Номер телефона <span class="req">*</span></label>
+      <input class="field" id="phoneInput" inputmode="tel" placeholder="+7 (999) 000-00-00" oninput="clearErr()">
+      <div class="fielderr" id="phoneErr" hidden>Пожалуйста, заполните это поле</div>
+
+      <label class="consent">
+        <input type="checkbox" id="consent" onchange="checkLogin()">
+        <span>Я даю <a>согласие</a> на обработку предоставляемых персональных данных. С <a>политикой конфиденциальности</a> и <a>пользовательским соглашением</a> ознакомлен.</span>
+      </label>
+
+      <button class="btn" id="getCode" onclick="toCode()">Получить код</button>
+    </section>
+
+    <!-- ЭКРАН: код -->
+    <section id="s-code" class="screen" hidden>
+      <h1 class="sm">Введите код</h1>
+      <p class="lead" style="margin-bottom:8px">Мы отправили СМС с кодом на номер:<br>
+        <b id="maskedPhone" style="color:var(--ink)"></b> &nbsp;<button class="changeno" onclick="show('s-login')">Изменить</button></p>
+
+      <label class="fl">Код СМС <span class="req">*</span></label>
+      <div class="codewrap" id="codeInputs">
+        <input maxlength="1" inputmode="numeric" data-i="0">
+        <input maxlength="1" inputmode="numeric" data-i="1">
+        <input maxlength="1" inputmode="numeric" data-i="2">
+        <input maxlength="1" inputmode="numeric" data-i="3">
+      </div>
+      <div class="fielderr" id="codeErr" hidden>Неверный код, попробуйте ещё раз.</div>
+      <button class="resend" disabled>Отправить повторно (54 с)</button>
+    </section>
+
+    <!-- ЭКРАН: главная -->
+    <section id="s-home" class="screen" hidden>
+      <header class="brand" style="padding:16px 0 14px">
+        <div class="logo"><span class="g">ГРАНЕЛЬ</span><span class="beta">Beta</span></div>
+        <button class="burger" onclick="openDrawer()"><span></span><span></span><span></span></button>
+      </header>
+      <div class="rule"></div>
+
+      <div class="hi">Здравствуйте,<br>ТестКиржинов ТестАслан</div>
+
+      <button class="tile" onclick="startUnique()">
+        <span class="ic red">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </span>
+        <span class="tx"><div class="tt">Проверить<br>на уникальность</div></span>
+        <span class="go"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
+      </button>
+
+      <button class="tile" onclick="alert2('Запись на встречу — в демо не реализована')">
+        <span class="ic red">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </span>
+        <span class="tx"><div class="tt">Запись на встречу</div><div class="ss">+7 (495) 185-98-12</div></span>
+        <span class="go"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
+      </button>
+
+      <div class="panel welcome">
+        <div class="wt">Добро пожаловать в <span class="r">кабинет брокера</span></div>
+        <p>Проверяйте клиентов на уникальность, назначайте встречи и управляйте заявками.</p>
+        <img alt="Офис Гранель" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231b1b1f'/%3E%3Cstop offset='.55' stop-color='%23E30613'/%3E%3Cstop offset='1' stop-color='%23f2f2f2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='200' fill='url(%23g)'/%3E%3Crect x='30' y='120' width='90' height='55' rx='4' fill='%23111' opacity='.35'/%3E%3Crect x='150' y='120' width='90' height='55' rx='4' fill='%23111' opacity='.35'/%3E%3Crect x='270' y='120' width='90' height='55' rx='4' fill='%23111' opacity='.35'/%3E%3C/svg%3E">
+        <button class="btn" onclick="alert2('Документы — в демо не реализованы')">Ознакомиться с документами</button>
+      </div>
+
+      <div class="panel">
+        <div class="brokerrow" style="cursor:default">
+          <div><h3 style="display:inline">Клиенты</h3> <span class="cnt">0 человек</span></div>
+        </div>
+        <div class="statrow"><span class="l">Уникальные</span><span class="v">0</span></div>
+        <div class="statrow"><span class="l">Неуникальные</span><span class="v">0</span></div>
+      </div>
+
+      <div class="panel">
+        <div class="brokerrow" onclick="openDrawer()">
+          <div><h3 style="display:inline">Брокеры</h3> <span class="cnt">1 человек</span></div>
+          <span class="chev">›</span>
+        </div>
+        <div class="bcard">
+          <div style="flex:1">
+            <div class="nm">ТестКиржинов ТестАслан Тестович</div>
+            <div class="sub">ИП Киржинов Аслан Русланович</div>
+            <div class="li"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg> a.kirzhinov@idaproject.com</div>
+            <div class="li"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10a8 8 0 10-16 0c0 6 8 12 8 12s8-6 8-12z"/><circle cx="12" cy="10" r="3"/></svg> +7 (999) 985-60-07</div>
+          </div>
+          <div class="av">ТТ</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЭКРАН: проверка на уникальность — ввод телефона -->
+    <section id="s-uniq" class="screen" hidden>
+      <div class="modal-head" style="margin:0 -20px 8px">
+        <span class="mt">Проверка на уникальность</span>
+        <button class="x" onclick="show('s-home')">✕</button>
+      </div>
+      <h1 class="sm">Проверка клиента на уникальность</h1>
+      <div style="height:14px"></div>
+      <label class="fl">Телефон <span class="req">*</span></label>
+      <input class="field" id="clientPhone" inputmode="tel" placeholder="+7 (999) 000-00-00">
+      <div style="position:absolute;left:20px;right:20px;bottom:28px">
+        <button class="btn" onclick="checkUnique()">Проверить клиента</button>
+      </div>
+    </section>
+
+    <!-- ЭКРАН: результат — неуникален -->
+    <section id="s-notuniq" class="screen" hidden>
+      <div class="modal-head" style="margin:0 -20px 8px">
+        <span class="mt">Проверка на уникальность</span>
+        <button class="x" onclick="show('s-home')">✕</button>
+      </div>
+      <div class="center">
+        <div class="result-ic no">
+          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </div>
+        <h2>Клиент закреплён<br>за другим брокером</h2>
+        <p class="sub">По этому номеру уже есть активная уникальность. По вопросу продления обратитесь к менеджеру.</p>
+      </div>
+      <div style="position:absolute;left:20px;right:20px;bottom:28px">
+        <div class="btnrow">
+          <button class="btn ghost" onclick="show('s-uniq')">Проверить ещё</button>
+          <button class="btn" onclick="alert2('Перевод в чат-бот менеджеров — в демо не реализован')">К менеджеру</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЭКРАН: результат — уникален, форма создания -->
+    <section id="s-createform" class="screen" hidden>
+      <div class="modal-head" style="margin:0 -20px 8px">
+        <span class="mt">Проверка на уникальность</span>
+        <button class="x" onclick="show('s-home')">✕</button>
+      </div>
+      <h1 class="sm">Ваш клиент уникален</h1>
+      <p class="lead" style="margin:8px 0 20px">Заполните данные для создания клиента</p>
+
+      <label class="fl">Фамилия</label>
+      <input class="field" id="cf" placeholder="Введите фамилию клиента" style="margin-bottom:16px">
+      <label class="fl">Имя <span class="req">*</span></label>
+      <input class="field" id="ci" placeholder="Введите имя клиента" style="margin-bottom:16px">
+      <label class="fl">Отчество</label>
+      <input class="field" id="co" placeholder="Введите отчество клиента" style="margin-bottom:16px">
+      <label class="fl">E-mail</label>
+      <input class="field" id="ce" placeholder="example@email.com" style="margin-bottom:16px">
+      <label class="fl">Проект <span class="req">*</span></label>
+      <div class="selectish muted" onclick="pickProject(this)">Выберите проект (макс. 3)<span class="cx">▾</span></div>
+      <div style="height:10px"></div>
+      <button class="btn" onclick="saveClient()">Сохранить</button>
+    </section>
+
+    <!-- ЭКРАН: успех -->
+    <section id="s-success" class="screen" hidden>
+      <div class="modal-head" style="margin:0 -20px 8px">
+        <span class="mt">Проверка на уникальность</span>
+        <button class="x" onclick="show('s-home')">✕</button>
+      </div>
+      <div class="center">
+        <div class="result-ic ok">
+          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <h2>Клиент успешно<br>зарегистрирован<br>как уникальный</h2>
+      </div>
+      <div style="position:absolute;left:20px;right:20px;bottom:28px">
+        <div class="btnrow">
+          <button class="btn" onclick="show('s-uniq')">Проверить ещё клиента</button>
+          <button class="btn ghost" onclick="show('s-home')">Вернуться к списку</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЭКРАН: клиенты (список) -->
+    <section id="s-clients" class="screen" hidden>
+      <header class="brand" style="padding:16px 0 14px">
+        <div class="logo"><span class="g">ГРАНЕЛЬ</span><span class="beta">Beta</span></div>
+        <button class="burger" onclick="openDrawer()"><span></span><span></span><span></span></button>
+      </header>
+      <div class="rule"></div>
+      <h1 class="sm" style="display:flex;align-items:center;gap:10px">Клиенты <span class="n" style="background:var(--red);color:#fff;font-size:14px;font-weight:700;min-width:26px;height:26px;border-radius:13px;display:flex;align-items:center;justify-content:center">0</span></h1>
+      <div class="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input placeholder="ФИО или телефон клиента">
+        <button class="find">Найти</button>
+      </div>
+      <div class="selectish">Уникальный<span class="cx">▾</span></div>
+      <div class="selectish muted">Клиенты (А-Я)<span class="cx">▾</span></div>
+      <button class="btn ghost sm" style="margin-bottom:12px" onclick="show('s-clients')">Сбросить</button>
+      <button class="btn" onclick="startUnique()">Проверить на уникальность</button>
+      <div class="empty">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+        <div class="t">Ничего не найдено</div>
+        <div>Попробуйте изменить параметры поиска</div>
+      </div>
+    </section>
+
+    <!-- ЭКРАН: интересы -->
+    <section id="s-interests" class="screen" hidden>
+      <header class="brand" style="padding:16px 0 14px">
+        <div class="logo"><span class="g">ГРАНЕЛЬ</span><span class="beta">Beta</span></div>
+        <button class="burger" onclick="openDrawer()"><span></span><span></span><span></span></button>
+      </header>
+      <div class="rule"></div>
+      <h1 class="sm" style="display:flex;align-items:center;gap:10px">Интересы <span class="n" style="background:var(--red);color:#fff;font-size:14px;font-weight:700;min-width:26px;height:26px;border-radius:13px;display:flex;align-items:center;justify-content:center">2</span></h1>
+      <div class="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input placeholder="ФИО или телефон клиента">
+        <button class="find">Найти</button>
+      </div>
+      <div class="selectish muted">ЖК (А-Я)<span class="cx">▾</span></div>
+      <button class="btn ghost sm" style="margin-bottom:14px">Сбросить</button>
+      <button class="btn" style="margin-bottom:18px" onclick="alert2('Создание интереса — в демо не реализовано')">Создать интерес</button>
+
+      <div class="intcard">
+        <div class="top">
+          <div class="jk">БЦ Звенигородская от Гранель</div>
+          <span class="badge">Действующий</span>
+        </div>
+        <div class="meta">Телефон: +7 (999) 716-98-68<br>ФИО: Киржинова Люсена</div>
+        <div class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+      </div>
+      <div class="intcard">
+        <div class="top">
+          <div class="jk">Гранель Живописный (2-я очередь)</div>
+          <span class="badge">Действующий</span>
+        </div>
+        <div class="meta">Телефон: +7 (999) 716-98-68<br>ФИО: Киржинова Люсена</div>
+        <div class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+      </div>
+    </section>
+
+    <!-- боковое меню -->
+    <div class="drawer" id="drawer" hidden>
+      <div class="dh">
+        <div class="av">ТТ</div>
+        <div>
+          <div class="nm">ТестКиржинов ТестАслан Тестович</div>
+          <div class="sub">+7 (999) 985-60-07 · a.kirzhinov@idaproject.com</div>
+        </div>
+        <button class="x" onclick="closeDrawer()">✕</button>
+      </div>
+      <nav>
+        <a onclick="nav('s-home')">Главная</a>
+        <a onclick="closeDrawer()">Брокеры</a>
+        <a class="active" onclick="nav('s-clients')">Клиенты</a>
+        <a onclick="nav('s-interests')">Интересы <span class="n">2</span></a>
+        <a onclick="closeDrawer()">Встречи</a>
+        <a onclick="closeDrawer()">Проекты</a>
+        <a onclick="closeDrawer()">Квартиры</a>
+        <a onclick="closeDrawer()">Офисы</a>
+        <a onclick="closeDrawer()">Документы</a>
+        <a onclick="closeDrawer()">Контакты</a>
+      </nav>
+      <div class="foot">
+        <div class="a"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg> Уведомления <span class="n" style="background:var(--red);color:#fff;font-size:11px;min-width:20px;height:20px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;margin-left:6px">2</span></div>
+      </div>
+    </div>
+
+    <!-- тост -->
+    <div id="toast" style="position:absolute;left:50%;bottom:30px;transform:translateX(-50%);background:#1b1b1f;color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;max-width:300px;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;z-index:40"></div>
+
+  </div>
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+  // Интеграция с Telegram: развернуть на весь экран, подхватить тему
+  try{
+    if(window.Telegram && Telegram.WebApp){
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+    }
+  }catch(e){}
+
+  var accountType='a';
+  function seg(v){accountType=v;
+    document.getElementById('seg-a').classList.toggle('on',v==='a');
+    document.getElementById('seg-b').classList.toggle('on',v==='b');}
+
+  function show(id){
+    ['s-login','s-code','s-home','s-uniq','s-notuniq','s-createform','s-success','s-clients','s-interests'].forEach(function(s){
+      document.getElementById(s).hidden = (s!==id);
+    });
+    closeDrawer();
+    document.getElementById('phone').scrollTop=0;
+    window.scrollTo(0,0);
+  }
+  function nav(id){closeDrawer();show(id);}
+
+  function clearErr(){document.getElementById('phoneErr').hidden=true;
+    document.getElementById('phoneInput').classList.remove('err');}
+  function checkLogin(){}
+
+  function toCode(){
+    var val=document.getElementById('phoneInput').value.trim();
+    var digits=val.replace(/\D/g,'');
+    var ok=/^[78]?9\d{9}$/.test(digits) || digits.length>=11;
+    if(!ok){
+      document.getElementById('phoneErr').hidden=false;
+      document.getElementById('phoneInput').classList.add('err');
+      return;
+    }
+    if(!document.getElementById('consent').checked){
+      toast('Поставьте галочку согласия на обработку данных');
+      return;
+    }
+    // маска номера
+    var d=digits.slice(-10);
+    document.getElementById('maskedPhone').textContent='+7 *** ***-**-'+d.slice(-2);
+    show('s-code');
+    setTimeout(function(){document.querySelector('#codeInputs input').focus();},60);
+  }
+
+  // авто-переход по вводу кода
+  var codeInputs=document.querySelectorAll('#codeInputs input');
+  codeInputs.forEach(function(inp,idx){
+    inp.addEventListener('input',function(){
+      document.getElementById('codeErr').hidden=true;
+      if(inp.value && idx<3) codeInputs[idx+1].focus();
+      var code=Array.prototype.map.call(codeInputs,function(i){return i.value;}).join('');
+      if(code.length===4){
+        if(code==='1234'){ setTimeout(function(){show('s-home');},250); }
+        else { document.getElementById('codeErr').hidden=false; }
+      }
+    });
+    inp.addEventListener('keydown',function(e){
+      if(e.key==='Backspace' && !inp.value && idx>0) codeInputs[idx-1].focus();
+    });
+  });
+
+  function startUnique(){
+    document.getElementById('clientPhone').value='';
+    show('s-uniq');
+  }
+  function checkUnique(){
+    var v=document.getElementById('clientPhone').value.replace(/\D/g,'');
+    var taken='79997169868';
+    if(v===taken || v==='9997169868'){ show('s-notuniq'); }
+    else { show('s-createform'); }
+  }
+  function pickProject(el){
+    el.textContent='Звенигородская от Гранель, Гранель Живопис…';
+    el.classList.remove('muted');
+    var cx=document.createElement('span');cx.className='cx';cx.textContent='▾';el.appendChild(cx);
+  }
+  function saveClient(){
+    var name=document.getElementById('ci').value.trim();
+    if(!name){toast('Заполните имя клиента');return;}
+    show('s-success');
+  }
+
+  function openDrawer(){document.getElementById('drawer').hidden=false;}
+  function closeDrawer(){document.getElementById('drawer').hidden=true;}
+
+  function reset(){show('s-login');
+    document.getElementById('consent').checked=false;
+    document.getElementById('phoneInput').value='';
+    codeInputs.forEach(function(i){i.value='';});
+  }
+
+  var toastT;
+  function toast(msg){
+    var t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';
+    clearTimeout(toastT);toastT=setTimeout(function(){t.style.opacity='0';},2200);
+  }
+  function alert2(msg){toast(msg);}
+</script>
