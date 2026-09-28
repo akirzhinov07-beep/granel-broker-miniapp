@@ -192,7 +192,7 @@
       </div>
 
       <label class="fl">Номер телефона <span class="req">*</span></label>
-      <input class="field" id="phoneInput" inputmode="tel" placeholder="+7 (999) 000-00-00" oninput="clearErr()" style="margin-bottom:16px">
+      <input class="field" id="phoneInput" inputmode="tel" placeholder="+7 (999) 000-00-00" style="margin-bottom:16px">
 
       <label class="fl">Пароль <span class="req">*</span></label>
       <input class="field" id="passInput" type="password" placeholder="Введите пароль" oninput="clearErr()">
@@ -461,6 +461,35 @@
       Telegram.WebApp.expand();
     }
   }catch(e){}
+
+  // Маска телефона: +7 (XXX) XXX-XX-XX. Храним 10 цифр номера в data-nat.
+  function fmtNat(nat){
+    var out='+7';
+    if(nat.length>0) out+=' ('+nat.slice(0,3);
+    if(nat.length>=3) out+=')';
+    if(nat.length>3) out+=' '+nat.slice(3,6);
+    if(nat.length>6) out+='-'+nat.slice(6,8);
+    if(nat.length>8) out+='-'+nat.slice(8,10);
+    return out;
+  }
+  function attachMask(el){
+    if(!el) return;
+    el.addEventListener('input',function(){
+      var v=el.value;
+      // отделяем визуальный префикс "+7", чтобы его цифра 7 не считалась номером
+      var hadPrefix=/^\s*\+?7/.test(v);
+      var body=hadPrefix ? v.replace(/^\s*\+?7/, '') : v;
+      var digits=body.replace(/\D/g,'');
+      // если префикса не было (вставка/ввод с нуля) и первым идёт код страны 7/8 — убрать его
+      if(!hadPrefix && (digits[0]==='7'||digits[0]==='8') && digits.length>=11) digits=digits.slice(1);
+      if(!hadPrefix && digits[0]==='8' && digits.length<=11) digits=digits.replace(/^8/, '');
+      var nat=digits.slice(0,10);
+      el.value=nat.length?fmtNat(nat):'';
+      if(el.id==='phoneInput') clearErr();
+    });
+  }
+  attachMask(document.getElementById('phoneInput'));
+  attachMask(document.getElementById('clientPhone'));
 
   var accountType='a';
   function seg(v){accountType=v;
