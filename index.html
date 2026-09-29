@@ -583,4 +583,48 @@
     clearTimeout(toastT);toastT=setTimeout(function(){t.style.opacity='0';},2200);
   }
   function alert2(msg){toast(msg);}
+
+  // ===== Deep-link: открытие нужного экрана по параметру запуска =====
+  // Telegram передаёт start_param из ссылки вида ?startapp=<код> или t.me/bot/app?startapp=<код>.
+  // Также поддерживаем обычный ?screen=<код> для теста в браузере.
+  var pendingScreen=null;
+  var SCREEN_MAP={
+    'unique':'s-uniq',        // Проверка на уникальность
+    'clients':'s-clients',    // Клиенты
+    'interests':'s-interests',// Интересы
+    'home':'s-home'           // Главная
+  };
+  function getStartParam(){
+    try{
+      if(window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.start_param){
+        return Telegram.WebApp.initDataUnsafe.start_param;
+      }
+    }catch(e){}
+    // запасной путь: ?screen= или ?startapp= в URL (для теста в браузере)
+    try{
+      var p=new URLSearchParams(location.search);
+      return p.get('screen')||p.get('startapp')||p.get('tgWebAppStartParam');
+    }catch(e){}
+    return null;
+  }
+  // запоминаем целевой экран; откроем его после входа
+  (function(){
+    var code=getStartParam();
+    if(code && SCREEN_MAP[code]) pendingScreen=SCREEN_MAP[code];
+  })();
+  // После успешного входа — перейти на целевой экран, если задан
+  var _origShowHome=null;
+  // перехватываем doLogin: после show('s-home') откроем pendingScreen
+  var _doLogin=doLogin;
+  doLogin=function(){
+    var beforeHidden=document.getElementById('s-home').hidden;
+    _doLogin();
+    var loggedIn=!document.getElementById('s-home').hidden;
+    if(loggedIn && pendingScreen && pendingScreen!=='s-home'){
+      var target=pendingScreen; pendingScreen=null;
+      setTimeout(function(){
+        if(target==='s-uniq'){ startUnique(); } else { show(target); }
+      },100);
+    }
+  };
 </script>
